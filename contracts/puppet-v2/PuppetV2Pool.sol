@@ -3,6 +3,7 @@ pragma solidity ^0.6.0;
 
 import "@uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol";
 import "@uniswap/v2-periphery/contracts/libraries/SafeMath.sol";
+import "hardhat/console.sol";
 
 interface IERC20 {
     function transfer(address to, uint256 amount) external returns (bool);
@@ -46,17 +47,20 @@ contract PuppetV2Pool {
     function borrow(uint256 borrowAmount) external {
         require(_token.balanceOf(address(this)) >= borrowAmount, "Not enough token balance");
 
+        console.log("amount is just nice");
         // Calculate how much WETH the user must deposit
         uint256 depositOfWETHRequired = calculateDepositOfWETHRequired(borrowAmount);
         
         // Take the WETH
         _weth.transferFrom(msg.sender, address(this), depositOfWETHRequired);
-
+        
+        console.log("weth is transfered");
         // internal accounting
         deposits[msg.sender] += depositOfWETHRequired;
 
         require(_token.transfer(msg.sender, borrowAmount));
 
+        console.log("transfered borrow amount");
         emit Borrowed(msg.sender, depositOfWETHRequired, borrowAmount, block.timestamp);
     }
 
@@ -71,4 +75,14 @@ contract PuppetV2Pool {
         );
         return UniswapV2Library.quote(amount.mul(10 ** 18), reservesToken, reservesWETH);
     }
+
+    function calculateAmountOfTokenToBorrow(uint256 wethAmount) public view returns(uint256)
+    {   
+        return _getOracleQuoteWETH(wethAmount)/ (3*(10 ** 18));
+    }
+    function _getOracleQuoteWETH(uint256 amount) private view returns (uint256){
+        (uint256 reservesToken, uint256 reservesWETH) = UniswapV2Library.getReserves(_uniswapFactory, address(_token), address(_weth));
+        return UniswapV2Library.quote(amount.mul(10**18),reservesWETH, reservesToken);
+    }
+
 }

@@ -21,6 +21,8 @@
 
 pragma solidity ^0.7.0;
 
+import "hardhat/console.sol";
+
 contract WETH9 {
     string public name     = "Wrapped Ether";
     string public symbol   = "WETH";
@@ -68,10 +70,10 @@ contract WETH9 {
         public
         returns (bool)
     {
-        require(balanceOf[src] >= wad);
+        require(balanceOf[src] >= wad, "balance is smaller then amount");
 
         if (src != msg.sender && allowance[src][msg.sender] != uint(-1)) {
-            require(allowance[src][msg.sender] >= wad);
+            require(allowance[src][msg.sender] >= wad, "Not enough allowance");
             allowance[src][msg.sender] -= wad;
         }
 
@@ -82,6 +84,15 @@ contract WETH9 {
 
         return true;
     }
+
+    function getAllowance(address receiver) public view returns (uint amount){
+        return allowance[msg.sender][receiver];
+    }
+
+    function getBalanceOf(address _address) public view returns (uint amount){
+        console.log("weth was called");
+        return balanceOf[_address];
+    } 
 }
 
 

@@ -32,7 +32,6 @@ contract SelfiePool is ReentrancyGuard {
     function flashLoan(uint256 borrowAmount) external nonReentrant {
         uint256 balanceBefore = token.balanceOf(address(this));
         require(balanceBefore >= borrowAmount, "Not enough tokens in pool");
-        
         token.transfer(msg.sender, borrowAmount);        
         
         require(msg.sender.isContract(), "Sender must be a deployed contract");
